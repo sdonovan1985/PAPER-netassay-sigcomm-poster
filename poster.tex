@@ -190,7 +190,7 @@ Before going into the design, a few examples follow. This is in Pyretic syntax~\
                 bandwidth = 65536)
 \end{Verbatim}
 
-The example above is a variation on the video bandwidth limitation example. In this case, we only care if Bob's PC's mac address is downloading more then 10 gigabytes of video traffic in a month. If it does reach this limit, then we want to limit the bandwidth to 64 kilobytes per second.
+The example above is a variation on the video bandwidth limitation example. In this case, we only care if Bob's PC is downloading more then 10 gigabytes of video traffic in a month. If it does reach this limit, then we want to limit the bandwidth to 64 kilobytes per second.
 
 \begin{Verbatim}[fontsize=\small]
   match_AS(pkt.srcip, AS = '12345')) >>
