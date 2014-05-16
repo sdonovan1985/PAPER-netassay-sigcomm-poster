@@ -162,7 +162,7 @@ operators.
 
 %\terms{Theory}
 
-\keywords{Network monitoring, network management}
+\keywords{Network monitoring, network management, software-defined networking}
 
 \section{Introduction}
 Network management is a complex area. On stub networks, where the network is only a client to other networks, monitoring user behavior is limited. Bandwidth monitoring at the port or address level is among the more complex operations that are available. Similarly, triggered behaviors such as usage caps are limited. 
@@ -235,7 +235,7 @@ In the first example in section~\ref{sec:examples}, the new DNS response from \t
 %The metadata engine is the interface to the policies of \system{}. Going back to our video example, when a new DNS entry comes into the flow classifier, and a classification is assigned, the metadata engine looks at it. If it is classified as `video', the metadata engine will push a new rule to create counters per user to the switches.
 
 \subsection{AS Handler}
-As \system{} is based on the SDX platform which contains a BGP-engine, we have access to BGP routes. The primary reponsibilities are similar to those of the DNS handler, in that the AS handler needs to break down the high level policy into its consistuent components and returning them to the MCM.
+As \system{} is based on the SDX platform which contains a BGP-engine, we have access to BGP routes. The primary responsibilities are similar to those of the DNS handler, in that the AS handler needs to break down the high level policy into its constituent components and returning them to the MCM.
 %In the case where a network operator wants to send all traffic from a particular AS to a virus scanner appliance, the AS handler will identify which IP addresses are associated with the specified AS, and return these to the MCM. The MCM can then route the traffic vide the virus scanner appliance.
 
 In the second example from section~\ref{sec:examples}, the AS handler would be responsible for breaking down the \tti{match\textunderscore{}AS()} into the constituent components. These components would be a series \tti{match()} actions on source IP addresses from packets to the IP ranges that AS~12345 was advertising. The parallel composition of all of these \tti{match()} would be composed with the \tti{drop()} action by the MCM.
@@ -275,7 +275,7 @@ Future work, beyond finishing currently planned work, is to proactively perform 
 
 
 %\section{Conclusion}
-%\system{} is a work-in-progress for creating a high level monitoring system that provides for better triggered events for network operators. It offers flexability, that most current systems to not, and explores new 
+%\system{} is a work-in-progress for creating a high level monitoring system that provides for better triggered events for network operators. It offers flexibility, that most current systems to not, and explores new 
 % Most current systems are lacking with the flexibility that is offered to their users, and is an opportunity to make progress on a heretofore unexplored problem.
 
 
