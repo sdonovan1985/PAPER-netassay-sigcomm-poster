@@ -173,10 +173,34 @@ What is needed is a generalized system that can monitor network activity and pro
 
 More interesting triggered behaviors are also possible. For instance, a network operator has blacklists of ASes and domains that are associated with malicious behavior, but do host some legitimate content that should still be accessible. In this case, if a connection was destined for an IP associated with a potentially malicious AS, the network could automatically redirect traffic to a virus scanning appliance, rather than needing to send all traffic through the appliance. Another use would be to set a limit for amount of data that would be sent to a blacklisted AS before blocking connections, due to suspected bad behavior.
 
-\section{Design}
-\system{} is an SDN-based system. This provides both a whole-network view of traffic and centralized control, such that all network ingress points are under control of the SDN controller. This allows both of our goals, high-level monitoring and more interesting triggered behaviors, to be possible.
+Similar triggered behaviors have been described in prior works~\cite{cloudwatcher}\cite{opensafe}, however this has been limited to network security security devices.
 
-The system is based on the SDX platform~\cite{sdx}, which provides an easy to use policy syntax. Network operators use the new primitives being created for \system{} as they would if they were creating policies for SDX.
+\subsection{Behavioral Queries}
+Before going into the design, a few useful examples follow. This is in Pyretic syntax~\cite{pyretic}, where \tti{>}\tti{>} is sequential composition (operations run in order) and \tti{+} is parallel composition (operations run in parallel). 
+
+\begin{verbatim}
+  traffic_in_bytes(to = 'BobsPC', 
+                   content = 'video',
+                   timespan = 'monthly') > 10**9 >>
+      rate_limit(to = 'BobsPC', 
+                content = 'video', 
+                bandwidth = 65536)
+\end{verbatim}
+
+The example above is a variation on the video bandwidth limitation example. In this case, we only care if Bob's PC is downloading more then 10 gigabytes of video traffic in a month. If it does reach this limit, then we want to limit the bandwidth to 64 kilobytes per second.
+
+\begin{verbatim}
+  match_AS(pkt.srcip, AS = '12345')) >>
+      drop()
+\end{verbatim}
+
+The second example is simpler. We are see if a packet came from a AS 12345. If so, we want to drop it. Implicitly, if we do not drop a packet, it will be forwarded.
+
+
+\section{Design}
+%\system{} is an SDN-based system. This provides both a whole-network view of traffic and centralized control, such that all network ingress points are under control of the SDN controller. This allows both of our goals, high-level monitoring and more interesting triggered behaviors, to be possible.
+
+%The system is based on the SDX platform~\cite{sdx}, which provides an easy to use policy syntax. Network operators use the new primitives being created for \system{} as they would if they were creating policies for SDX.
 
 \begin{figure}
     \centering
@@ -186,52 +210,37 @@ The system is based on the SDX platform~\cite{sdx}, which provides an easy to us
 \end{figure}
 
 
-
-\system{} is divided into three parts, as can be seen in Figure~\ref{fig:architecture}. There are two classification modules, described below, that provide traffic identification and classification information to the main control module. The main control module is responsible for combining information from the classification modules and, based on the network operator's policies, writing rules into the network switches. It is a layer on top of the SDX platform.
-
-
+\system{} is SDN-based and workson top of the SDX platform~\cite{sdx}. This provides easy to understand syntax for network operators.
+\system{} is divided into three parts, as can be seen in Figure~\ref{fig:architecture}. There are two monitoring modules, described below, that provide traffic identification and monitoring information to the main control module (MCM). %The MCM is responsible for combining information from the classification modules and, based on the network operator's policies, writing rules into the network switches.%It is a layer on top of the SDX platform.
+The MCM is responsible for combining the results from the monitoring modules, and implementing the reactive policies defined by the network operator.
 
 \subsection{DNS Handler}
-The DNS Handler contains two parts, a flow classifier and a metadata engine. The metadata engine requires the flow classifier, but the flow classifier can be used as a standalone module. In fact, the flow classifier is based on a part of FlowQoS~\cite{FlowQoS}, but is entirely rewritten and heavily enhanced.
+The DNS handler contains two parts, a metadata engine and a flow classifier based on part of FlowQoS~\cite{FlowQoS}. %The metadata engine requires the flow classifier, but the flow classifier can be used as a standalone module. In fact, the flow classifier is based on a part of FlowQoS~\cite{FlowQoS}, but is entirely rewritten and heavily enhanced.
+At startup, the DNS handler creates a rule in all ingress network devices to make a copy of DNS responses, forward one to the actual destination, and forward the second to the DNS handler. This is send to the flow classifier. The flow classifier parses the DNS packet, extract the doamins and associated IPs, and classifies traffic from the IPs based on the domain name. For instance, if a DNS response from \tti{googlevideocontent.com} with associated IP of 198.51.100.8 was seen, traffic coming from 198.51.100.8 would be assumed to be video until the DNS reponse time-to-live (TTL) was reached. 
 
-The flow classifier has two main components. The first is the DNS-to-classification database. It contains mappings of IP addresses to classifications, along with metadata about the mapping - the DNS lookup string, expiration time, and the time-to-live (TTL) value from the DNS server. The second component is the DNS parser. This performs two actions, making DNS queries (requested by the metadata engine), and parsing all DNS responses, from self-issued requests and from network user requests.
+The metadata engine handles policy implementation for DNS-based classification. Continuing with our video example, if a policy is written to calculate how much video traffic is coming into a network, the metadata engine is responsible for breaking down the high-level policy passed from the MCM into the constituent components. That is, for each new IP address associated with the video classification, it is responsible for creating byte-counter rules for each IP, then agregating the values reported, and returning this information to the MCM.
 
-The metadata engine is the interface to the policies of \system{}. Going back to our video example, when a new DNS entry comes into the flow classifier, and a classification is assigned, the metadata engine looks at it. If it is classified as `video', the metadata engine will push a new rule to create counters per user to the switches.
+%The flow classifier has two main components. The first is the DNS-to-classification database. It contains mappings of IP addresses to classifications, along with metadata about the mapping - the DNS lookup string, expiration time, and the time-to-live (TTL) value from the DNS server. The second component is the DNS parser. This performs two actions, making DNS queries (requested by the metadata engine), and parsing all DNS responses, from self-issued requests and from network user requests.
+
+%The metadata engine is the interface to the policies of \system{}. Going back to our video example, when a new DNS entry comes into the flow classifier, and a classification is assigned, the metadata engine looks at it. If it is classified as `video', the metadata engine will push a new rule to create counters per user to the switches.
 
 \subsection{AS Handler}
-As \system{} is based on the SDX platform, which contains a BGP-engine, we have access to BGP routes. In the case where a network operator wants to send all traffic from a particular AS to a virus scanner appliance, the AS Handler will install rules for all traffic originating from that AS's advertised IP address blocks. If the network operator does not trust any traffic that passes through a particular AS, the AS Handler can install rules for any IP address block where the AS is in the AS-Path of the BGP route.
+As \system{} is based on the SDX platform which contains a BGP-engine, we have access to BGP routes. In the case where a network operator wants to send all traffic from a particular AS to a virus scanner appliance, the AS handler will identify which IP addresses are associated with the specified AS, and return these to the MCM. The MCM can then route the traffic vide the virus scanner appliance.
 
-This handler can be seen as optional. Many networks, in particular home or small business networks, BGP information is not accessible.
+%the AS Handler will install rules for all traffic originating from that AS's advertised IP address blocks. If the network operator does not trust any traffic that passes through a particular AS, the AS Handler can install rules for any IP address block where the AS is in the AS-Path of the BGP route.
 
-\subsection{Behavioral Queries}
-A few useful examples follow. This is in Pyretic syntax~\cite{pyretic}, where \tti{>}\tti{>} is sequential composition (operations run in order) and \tti{+} is parallel composition (operations run in parallel). 
+Many networks, in particular home or small business networks, BGP information is not accessible. As such, this handler can be seen as optional.
 
-\begin{verbatim}
-  traffic_in_bytes(to = 'BobsPC', 
-                   content = 'video',
-                   timespan = 'monthly') > 10**9 >>
-      ratelimit(to = 'BobsPC', 
-                content = 'video', 
-                bandwidth = 65536)
-\end{verbatim}
 
-The example above is a variation on the video bandwidth limitation example. In this case, we only care if Bob's PC is downloading more then 10 gigabytes of video traffic in a month. If it does reach this limit, then we want to limit the bandwidth to 64 kilobytes per second.
-
-\begin{verbatim}
-  matchAS(pkt.srcip, AS = '12345')) >>
-      drop(pkt)
-\end{verbatim}
-
-The second example is simpler. We are see if a packet came from a AS 12345. If so, we want to drop it. Implicitly, if we do not drop a packet, it will be forwarded.
 
 \subsection{Data Flow}
 %Rules are installed at startup of \system{}, so anything that happens subsequently is dynamic. In particular, the DNS and BGP bindings will change, expire, and be repopulated regularly. As such, we will describe a flow for the first example in the previous section.
 
-%At initialization, multiple rules will be created. First, byte count rules for traffic classified as video destined for Bob's PC will be installed. These counts will be reported at a set interval (perhaps once per minute). As category-specific rules are DNS-based, each of the different video counting rules will be summed by the DNS metadata engine and reported to the main control module.
+%At initialization, multiple rules will be created. First, byte count rules for traffic classified as video destined for Bob's PC will be installed. These counts will be reported at a set interval (perhaps once per minute). As category-specific rules are DNS-based, each of the different video counting rules will be summed by the DNS metadata engine and reported to the MCM.
 
 %As Bob visits different video websites, DNS requests will be made by his PC. The responses will be inspected by the DNS flow classifier, while simultaneously forwarding the response to Bob. When Bob does request the video, the source IP will be checked by the DNS metadata module against the DNS database to find out if it has been classified. Since it is a video source, new byte counter rules for the new flow will be installed, and added to the previous rules. 
 
-%Once the 10 gigabyte limit is hit, the main control module will create a \tti{ratelimit} rule and write that to the closest switch to Bob's PC.
+%Once the 10 gigabyte limit is hit, the MCM will create a \tti{ratelimit} rule and write that to the closest switch to Bob's PC.
 
 %%This section will go into detail of the inner workings of the first example above, about limiting Bob's video consumption. We are only going to discuss the actions of the DNS handler, but the actions of the AS handler will be substantially the same.
 
@@ -239,7 +248,7 @@ Policy is established at startup of \system{}, so anything that happens subseque
 
 When a new DNS response comes in, the response is parsed and classified. If it is classified as video, the DNS metadata engine will create new rules that establishes byte counters for Bob's PC to all traffic coming from the IP addresses associated with the video site. It does not matter if Bob was associated with the DNS request, the rules would be installed regardless.
 
-There are likely multiple addresses associated with video traffic, and likely as many counters. These counters will need to be accumulated, which is also handled by the DNS metadata engine. The total of the counters is sent to the main control module, which, if the total has reached 10 gigabytes for the month, will create a \tti{ratelimit} rule and write the rule to the closest switch to Bob's PC.
+There are likely multiple addresses associated with video traffic, and likely as many counters. These counters will need to be accumulated, which is also handled by the DNS metadata engine. The total of the counters is sent to the MCM, which, if the total has reached 10 gigabytes for the month, will create a \tti{ratelimit} rule and write the rule to the closest switch to Bob's PC.
 
 
 \section{Progress and Future Work}
@@ -250,6 +259,8 @@ There are some inherent limitations, but will be resolved thanks to progress on 
 Of note is that the DNS flow classifier is the only module that does packet inspection. Other packets are looked at
 
 Future work, beyond finishing currently planned work, is to expand upon the proactively installed rules. Since flows can be classified to pass through a security appliance if they're coming from suspicious sources, scalability studies are possible. 
+Proactive DNS lookups
+Handling conflicts
 
 %\section{Conclusion}
 %\system{} is a work-in-progress for creating a high level monitoring system that provides for better triggered events for network operators. Most current systems are lacking with the flexibility that is offered to their users, and is an opportunity to make progress on a heretofore unexplored problem.
