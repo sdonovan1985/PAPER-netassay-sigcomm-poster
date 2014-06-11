@@ -19,8 +19,6 @@
       <rect fill="none" x="256" width="149" height="104" y="237" clip-path="url(#clipPath2)"/>
       <text x="262" xml:space="preserve" y="367.6016" clip-path="url(#clipPath2)" stroke="none">Main Control Module</text>
       <rect fill="none" x="256" width="311" height="48" y="350" clip-path="url(#clipPath2)"/>
-      <text x="424" xml:space="preserve" y="254.6016" clip-path="url(#clipPath2)" stroke="none">AS Handler</text>
-      <rect fill="none" x="418" width="149" height="104" y="237" clip-path="url(#clipPath2)"/>
       <text x="289.0527" xml:space="preserve" y="283.5352" clip-path="url(#clipPath2)" stroke="none">Flow Classifier</text>
       <rect fill="none" x="262" width="138" height="30" y="264" clip-path="url(#clipPath2)"/>
       <text x="282.8682" xml:space="preserve" y="322.5352" clip-path="url(#clipPath2)" stroke="none">Metadata Engine</text>
@@ -29,10 +27,12 @@
       <rect fill="none" x="256" width="311" height="48" y="398" clip-path="url(#clipPath2)"/>
       <text x="392.8701" xml:space="preserve" y="475.5352" clip-path="url(#clipPath2)" stroke="none">Switch</text>
       <path fill="none" d="M287.1 456 L567 456 L535.9 486 L256 486 Z" fill-rule="evenodd" clip-path="url(#clipPath2)"/>
-      <text x="457.4805" xml:space="preserve" y="426.5352" clip-path="url(#clipPath2)" stroke="none">BGP Engine</text>
-      <rect fill="none" x="421" width="138" height="30" y="407" clip-path="url(#clipPath2)"/>
-      <text x="460.1592" xml:space="preserve" y="303.5352" clip-path="url(#clipPath2)" stroke="none">BGP source</text>
-      <rect fill="none" x="423.5" width="138" height="30" y="284" clip-path="url(#clipPath2)"/>
+      <text x="424" xml:space="preserve" y="254.6016" clip-path="url(#clipPath2)" stroke="none">BGP Handler</text>
+      <rect fill="none" x="418" width="149" height="104" y="237" clip-path="url(#clipPath2)"/>
+      <text x="460.4863" xml:space="preserve" y="283.5352" clip-path="url(#clipPath2)" stroke="none">BGP Source</text>
+      <rect fill="none" x="424" width="138" height="30" y="264" clip-path="url(#clipPath2)"/>
+      <text x="444.8682" xml:space="preserve" y="322.5352" clip-path="url(#clipPath2)" stroke="none">Metadata Engine</text>
+      <rect fill="none" x="424" width="138" height="30" y="303" clip-path="url(#clipPath2)"/>
     </g>
   </g>
 </svg>
