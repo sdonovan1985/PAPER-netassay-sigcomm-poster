@@ -1,0 +1,25 @@
+
+\begin{comment}
+%\subsection{Behavioral Queries}
+\section{Example Behaviors}
+\label{sec:examples}
+Before going into the design, a few examples follow. This is in Pyretic syntax~\cite{pyretic}, where \tti{>}\tti{>} is sequential composition (operations run in order) and \tti{+} is parallel composition (operations run in parallel). 
+
+\begin{Verbatim}[fontsize=\small]
+  traffic_in_bytes(to = 'BobsPC', 
+                   content = 'video',
+                   timespan = 'monthly') > 10**9 >>
+      rate_limit(to = 'BobsPC', 
+                content = 'video', 
+                bandwidth = 65536)
+\end{Verbatim}
+
+The example above is a variation on the video bandwidth limitation example. In this case, we only care if Bob's PC is downloading more then 10 gigabytes of video traffic in a month. If it does reach this limit, then we want to limit the bandwidth to 64 kilobytes per second.
+
+\begin{Verbatim}[fontsize=\small]
+  match_AS(pkt.srcip, AS = '12345')) >>
+      drop()
+\end{Verbatim}
+
+The second example is simpler. We are see if a packet came from a AS 12345. If so, we want to drop it. Implicitly, if we do not drop a packet, it will be forwarded.
+\end{comment}

@@ -1,0 +1,16 @@
+\section{Progress and Future Work}
+Work on \system{} is ongoing. Design work and implementation of specific modules, including the DNS flow classifier, are complete. Implementation is in progress. Further simplification, such as simplifying the policy in the introduction to be a single line, is desired.
+
+%There are some inherent limitations, but will be resolved thanks to progress on other project. In particular, SDX is limited to a single switch right now, however this may be a minor issue due to ongoing SDX development.
+
+%Of note is that the DNS flow classifier is the only module that does packet inspection.
+
+Future work, beyond finishing currently planned work, is to proactively perform DNS look ups from various public DNS sources in order to get a broader data set. While conflicts between the handlers' policies are unlikely, handling conflicts needs to be addressed in the future. Along the same lines, in cases where bandwidth is being counted, preventing `double counting' between the two handlers is also necessary.
+
+Additionally, incorperating this system into an Internet Exchange Point, perticularly in the form of SDX~\cite{sdx}, is a natual next step.
+
+
+%\section{Conclusion}
+%\system{} is a work-in-progress for creating a high level monitoring system that provides for better triggered events for network operators. It offers flexibility, that most current systems to not, and explores new 
+% Most current systems are lacking with the flexibility that is offered to their users, and is an opportunity to make progress on a heretofore unexplored problem.
+

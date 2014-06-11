@@ -1,0 +1,22 @@
+\section{Introduction}
+Network management is a complex area. On stub networks, where the network is only a client to other networks, monitoring user behavior is limited. Bandwidth monitoring at the port or address level is among the more complex operations that are available. Similarly, triggered behaviors such as usage caps are limited. 
+More complex behavior is available, primarily in highly specialized security appliances, however these are not general purpose devices.
+
+What is needed is a generalized system that can monitor network activity and produce behaviors based on high level policies. For instance, a network operator would like to know how much video traffic each user is consuming. Right now, there is no easy way of doing this. 
+
+\system{} is being developed to make it easy for network operators to implement such policies. In the video bandwidth example, \system{} needs to decide what network flows are video traffic. Traffic coming from \\\tti{googlevideo.com} will be classified as video, as could any traffic associated with AS 2906, Netflix's AS. Identifying the user, at least on a stub network, can be done a number of ways, such as statically assigned IPs or MAC addresses. A policy for this could be expressed as:
+
+\begin{Verbatim}[fontsize=\small]
+  video-count-Bob = count_bytes(3600,['src-ip'])
+  video-count-Bob.register_callback(check_video_count)
+  video-from-Bob = match(srcip = 198.51.100.8) & 
+                   (matchAS(2906) | matchClass('video'))
+  pol = video-from-Bob >> video-count-Bob
+\end{Verbatim}
+  
+
+More interesting triggered behaviors are also possible. Continuing the above example, being able to react to Bob's excessive video consumption is desireable. For instance, being able to redirect Bob's video traffic through a rate limited link could be a useful policy to impliment. 
+
+As a further, more security oriented example, a network operator has blacklists of ASes and domains that are associated with malicious behavior, but do host some legitimate content that should still be accessible. In this case, if a connection was destined for an IP associated with a potentially malicious AS, the network could automatically redirect traffic to a virus scanning appliance, rather than needing to send all traffic through the appliance. Another use would be to set a limit for amount of data that would be sent to a blacklisted AS before blocking connections, due to suspected bad behavior.
+
+Similar triggered behaviors have been described in prior works~\cite{cloudwatcher}\cite{opensafe}, however this has been limited to network security security devices.
